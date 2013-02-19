@@ -31,11 +31,12 @@ class SQLObject {
 	/*
 	 * Pour le cache
 	 */
-	public $cache = null; // référence à la classe de cache
-	public $maj_table_path = ""; // référence au path du fichier contenant les dates de mises à jour des tables
+	public $cache = null; // reference a la classe de cache
+	public $maj_table_path = ""; // reference au path du fichier contenant les dates de mises a jour des tables
 	public $isApcCache = false;
 	public $isFileCache = false;
 	public $isMemCache = false;
+	public $cacheResult = false;
 	
 	
 	/*
@@ -84,7 +85,7 @@ class SQLObject {
 
 		//rccc
 		//Quel cache ?
-		//Si pas d'option déclarée, alors APC est le cache par défaut
+		//Si pas d'option declaree, alors APC est le cache par defaut
 		if(false === isset($options['cache'])){
 			$options['cache'] = 'Cache_Apc';
 			//$options['cache'] = 'Cache_Memcache';
@@ -101,10 +102,10 @@ class SQLObject {
 				}
 				$this->cache = new $class($args);	
 			}else{
-				throw new Exception("SQLObject::_construct : la classe de cache spécifiée en paramètres de SQLobject n'existe pas");
+				throw new Exception("SQLObject::_construct : la classe de cache specifiee en paramètres de SQLobject n'existe pas");
 			}
 			
-			//Si le cache est Cache_apc ou Cache_memcache, alors maj_table_path est le nom de la clé
+			//Si le cache est Cache_apc ou Cache_memcache, alors maj_table_path est le nom de la cle
 			//par laquelle le contenu de maj_table est accessible.
 			if($this->cache instanceof Cache_Apc){
 				$this->maj_table_path = "SQLObject_maj_table";	
@@ -260,7 +261,7 @@ class SQLObject {
 	//	$this->eventDispatcher->notify(  new sfEvent($this, 'sqlobject_insert', array("id"=>"0", "table"=>$table)) );
 
 		
-		//doit on retrouver les données en cache ?
+		//doit on retrouver les donnees en cache ?
 		if($cache){
 						
 			$cacheKey = $this->setCacheKey( $table , $fields, $where, $order , $limit, $joinList );
@@ -280,7 +281,7 @@ class SQLObject {
 
 		$Response = array();
 
-		if( $this->orderController && $exec == true){ //exec == false  : pour les sous requêtes
+		if( $this->orderController && $exec == true){ //exec == false  : pour les sous requetes
 			$this->Request="SELECT SQL_CALC_FOUND_ROWS $fields FROM $table ";
 		}else{
 			$this->Request="SELECT $fields FROM $table ";
@@ -319,7 +320,7 @@ class SQLObject {
 
 		if( $this->orderController ){
 			if( $this->orderController->where ){
-				//S'il y a un controleur d'affecté...
+				//S'il y a un controleur d'affecte...
 				if ($where){
 					$this->Request .= " AND ".$this->orderController->getWhere();
 				}else{
@@ -332,10 +333,10 @@ class SQLObject {
 			$this->Request .= " GROUP BY ".$this->groupBy;
 		}
 
-		//S'il y a un controleur d'affecté...
+		//S'il y a un controleur d'affecte...
 		if( $this->orderController ){
 
-			//...et il récupère les données de tri spécifié dans l'instance
+			//...et il recupère les donnees de tri specifie dans l'instance
 			if ($this->orderController->order){
 				$this->Request.=" ORDER BY ".$this->orderController->order;
 			}
@@ -352,7 +353,7 @@ class SQLObject {
 			}
 		}
 		
-		//on peut ne pas vouloir executer la requête - en cas de test
+		//on peut ne pas vouloir executer la requete - en cas de test
 		if(!$exec) return;
 
 		if (true === is_resource($Select = mysql_query( $this->Request , $this->Connexion))){
@@ -360,7 +361,7 @@ class SQLObject {
 			//Recup le nombre de resultats sans limit
 			if( $this->orderController ){
 
-				//.... il lui envoi le nombre total de résultats...
+				//.... il lui envoi le nombre total de resultats...
 				$num = mysql_fetch_assoc(mysql_query( "SELECT FOUND_ROWS() AS found_rows" , $this->Connexion ));
 				$this->num_of_rows = $num_of_rows = $num['found_rows'];
 				//$this->orderController->giveNumOfRowsTotal( $num_of_rows );
@@ -388,7 +389,7 @@ class SQLObject {
 
 					$this->requestMicroTime = ((($sec2-$sec1)+($usec2-$usec1))*1000)."msec";
 
-					//notification de la requête
+					//notification de la requete
 					//if($this->eventDispatcher)
 						//$this->eventDispatcher->notify( new sfEvent($this, 'sql_select', array('request' => $this->Request, "requestMicroTime" => $this->requestMicroTime)) );
 					
@@ -448,7 +449,7 @@ class SQLObject {
 	public function insert( $table , $fields , $values = NULL , $onDuplicateKey = NULL, $execute = true) {
 
 
-		//ici on mets à jour le fichier contenant les dates de modifications des table
+		//ici on mets a jour le fichier contenant les dates de modifications des table
 		$this->update_maj_tables($table);
 
 		$listFields = array();
@@ -529,7 +530,7 @@ class SQLObject {
 	}
 	public function update( $table , $set , $where ) {
 
-		//ici on mets à jour le fichier contenant les dates de mises à jour des tables
+		//ici on mets a jour le fichier contenant les dates de mises a jour des tables
 		$this->update_maj_tables($table);
 		
 		if( is_array( $set ) ){
@@ -574,7 +575,7 @@ class SQLObject {
 	
 	public function delete( $table , $where ) {
 
-		//mettre à jour le fichier contenant les dates de lises à jour des tables
+		//mettre a jour le fichier contenant les dates de lises a jour des tables
 		$this->update_maj_tables($table);
 
 		if (false === empty($this->params) && true === is_string($where)) {
@@ -588,7 +589,7 @@ class SQLObject {
 		$this->Request="DELETE FROM $table WHERE $where";
 		$Delete = mysql_query( $this->Request , $this->Connexion );
 		
-		/** si aucune requête trouvé à delete **/
+		/** si aucune requete trouve a delete **/
 		if (mysql_affected_rows() == 0) {
 			return 0; 	
 		}
@@ -611,7 +612,7 @@ class SQLObject {
 	public function selectOne($table, $fields, $where = false, $order = null, $limit = null,$joinList = array(), $exec= true, $cache = false)
 	{
 
-		//doit on retrouver les données en cache ?
+		//doit on retrouver les donnees en cache ?
 		if($cache){
 		
 			$cacheKey = $this->setCacheKey( $table , $fields, $where, $order , $limit, $joinList );
@@ -652,10 +653,10 @@ class SQLObject {
 			$this->Request .= ' WHERE ' . $where_generated;
 		}
 			
-		//S'il y a un controleur d'affecté...
+		//S'il y a un controleur d'affecte...
 		if( $this->orderController ){
 
-			//...et il récupère les données de tri spécifié dans l'instance
+			//...et il recupère les donnees de tri specifie dans l'instance
 			if ($this->orderController->order){
 				$this->Request.=" ORDER BY ".$this->orderController->order;
 			}
@@ -710,7 +711,7 @@ class SQLObject {
 
 			$this->requestMicroTime = ((($sec2-$sec1)+($usec2-$usec1))*1000)."msec";
 
-			//notification de la requête
+			//notification de la requete
 			if($this->eventDispatcher)
 				$this->eventDispatcher->notify( new sfEvent($this, 'sql_select', array('request' => $this->Request, "requestMicroTime" => $this->requestMicroTime)) );
 
@@ -720,8 +721,9 @@ class SQLObject {
 		return false;
 	}
 
-	function selectUnion( $selects , $order = NULL , $limit = NULL, $exec= true, $cache = false ) {
-		
+	function selectUnion( $selects , $order = NULL , $limit = NULL, $groupby = NULL, $exec= true, $cache = false ) {
+		$debut = microtime(true);
+
 		$this->Request = array();
 		$tableTab = array();
 		$fieldTab = array();
@@ -752,11 +754,12 @@ class SQLObject {
 						$request .= " LIMIT ".$select[4];
 						$limitTab[] = $select[4];
 					}
+					
 	
 					$this->Request[] = "(".$request.")";
 				}
 				else if ($select instanceof \SQLObject) {
-					//on execute la requête à vide pour récupérer la Requete complète
+					//on execute la requete a vide pour recuperer la Requete complète
 					$select->execute(false,true,false);
 					
 					//collecte des tables;
@@ -772,35 +775,76 @@ class SQLObject {
 		}
 		$table = implode(" ,",$tableTab);
 		//existance du cache ?
-		if($cache){
+		if(false === empty($cache)){
 	
 			$cacheKey = $this->setCacheKey( $table , implode(" ,",$fieldTab),  implode(" ",$whereTab), $order , $limit );
-		
+
 			$datas = $this->processCache($cacheKey);
-		
-			if(!empty($datas)) return $datas;
+			
+			$fin = microtime(true);
+			$calcul = $fin - $debut;
+
+			$this->requestMicroTime = $calcul;
+			if(false === empty($datas)) { 
+				$this->cacheResult = true;
+				return $datas;
+			};
 		}
 		
 		
-
-		$this->Request = implode( " UNION " , $this->Request );
-
+		if (false === empty($groupby)) {
+			$this->Request = implode( " UNION ALL " , $this->Request );
+		}
+		else {
+			$this->Request = implode( " UNION  " , $this->Request );
+		}
+		$this->Request = sprintf("SELECT SQL_CALC_FOUND_ROWS * FROM (%s) as Z", $this->Request);
+		
+		if (false === empty($groupby) && true === is_array($groupby) ) {
+			//les groups by doivent etre :   id, word_table par exemple sans nom de table
+			$group = false;
+			foreach($groupby as $gb) { 
+					$group[] = sprintf("Z.%s", $gb);  
+			}
+			$this->Request = sprintf( "%s GROUP BY %s", $this->Request, implode(", ",$group)); 
+		}
 		if ($order){
-			$this->Request.=" ORDER BY $order";
+			$this->Request = sprintf( "%s ORDER BY Z.%s", $this->Request, $order); 
 		}
 		if ($limit){
-			$this->Request.=" LIMIT $limit";
+			$this->Request = sprintf( "%s LIMIT %s", $this->Request, $limit); 
 		}
-
+		
+		
+//	var_export($this->Request); die();
 		if(true === empty($exec)) return;
-			
+		
+	
 		if ($Select=mysql_query( $this->Request , $this->Connexion)){
+			
+			$fin = microtime(true);
+			$calcul = $fin - $debut;
+			$this->requestMicroTime = $calcul;
+			
+			if( false === empty($limit) ){
+
+				//.... il lui envoi le nombre total de resultats...
+				$num = mysql_fetch_assoc(mysql_query( "SELECT FOUND_ROWS() AS found_rows" , $this->Connexion ));
+		
+				$this->num_of_rows = $num_of_rows = $num['found_rows'];
+				//$this->orderController->giveNumOfRowsTotal( $num_of_rows );
+
+			}else{
+
+				$this->num_of_rows = $num_of_rows = mysql_num_rows($Select);
+			}
+			
 			if(mysql_num_rows($Select)>0){
-					
+
 				while ($row = mysql_fetch_array($Select, MYSQL_ASSOC)) {
 					$Response[]=$row;
 				}
-			
+						
 				//doit on conserver une copie des resultats en cache ?
 				if($cache){ 
 					$this->doCache($cacheKey, $this->Request, $table, $Response);
@@ -822,7 +866,7 @@ class SQLObject {
 	
 	/**
 	 * 
-	 * @param boolean $clean_index_table ( pour les requêtes imbriquées, ne pas effacer le tablea "index_table" )
+	 * @param boolean $clean_index_table ( pour les requetes imbriquees, ne pas effacer le tablea "index_table" )
 	 * @return SQLObject
 	 */
 	function clean($clean_index_table = true){
@@ -857,11 +901,11 @@ class SQLObject {
 	}
 	function createTable( $name  , $fields ) {
 
-		//Vérifie si la table n'éxiste pas
+		//Verifie si la table n'existe pas
 		if ( !$this->showTables( $name ) ){
 
 
-			//Créé la table
+			//Cree la table
 			$this->Request = "CREATE TABLE $name ( id INT NOT NULL , ".$fields." , PRIMARY KEY ( id ) ) ENGINE = INNODB" . ' COLLATE "utf8_general_ci"';
 
 			if ( mysql_query( $this->Request , $this->Connexion) ){
@@ -967,7 +1011,7 @@ class SQLObject {
 
 	/**
 	 *
-	 * permets de tracer les requêtes executées au chargement d'une page
+	 * permets de tracer les requetes executees au chargement d'une page
 	 * @author rccc
 	 *
 	 */
@@ -986,7 +1030,7 @@ class SQLObject {
 	 */
 
 	/**
-	 * Débute une transaction
+	 * Debute une transaction
 	 * http://www.devarticles.com/c/a/MySQL/Using-Transactions-with-MySQL-4.0-and-PHP/
 	 */
 	public function begin(){
@@ -1029,7 +1073,7 @@ class SQLObject {
 
 
 	/**
-	 * Ajoute un champs/colonne à retourner
+	 * Ajoute un champs/colonne a retourner
 	 */
 	public function addField($field){
 		$this->fieldList .= !empty($this->fieldList) ? ', ' . $field : ' ' . $field;
@@ -1037,7 +1081,7 @@ class SQLObject {
 	}
 
 	/**
-	 * Ajoute les champs/colonnes à retourner
+	 * Ajoute les champs/colonnes a retourner
 	 * @param String $fields
 	 */
 	public function addFields($fields){
@@ -1046,7 +1090,7 @@ class SQLObject {
 	}
 
 	/**
-	 * Spécifie les tables sur lesquelles on effectue la recherche
+	 * Specifie les tables sur lesquelles on effectue la recherche
 	 *
 	 * @param string $tables
 	 */
@@ -1120,7 +1164,7 @@ class SQLObject {
 		 	                if (false === empty($group_user_available) && (false === empty($group_user_available[GROUP_ADMIN]) || false === empty($group_user_available['00000001']))){ 
 		 	                        return $this; 
 		 	                } 
-		 	                //sinon on check les droits spécifiques du membres
+		 	                //sinon on check les droits specifiques du membres
  		 	                if (false === empty($group_user_available) && true === is_array($group_user_available)) { 
 		 	                    $where = false; 
 		 	                    $coor = "AND"; 
@@ -1196,7 +1240,7 @@ class SQLObject {
 	
 
 	/**
-	 * Dans le cas ou on souhaite une seule requête contenant des requêtes imbriquées
+	 * Dans le cas ou on souhaite une seule requete contenant des requetes imbriquees
 	 * 
 	 * @param string $queryString
 	 * @param string $connector
@@ -1279,7 +1323,7 @@ class SQLObject {
 	}
 
 	/**
-	 * update le fichier contenant les dates de mise à jour des tables
+	 * update le fichier contenant les dates de mise a jour des tables
 	 * @param string $table
 	 */
 	public function update_maj_tables($table){
@@ -1331,8 +1375,8 @@ class SQLObject {
 
 	/**
 	 * check si peut renvoyer le cache -  s'il existe -  ou pas
-	 * @param string $params continet les paramètres de la requête
-	 * @return BOOLEAN true si le cache peut être renvoyé, false le cas échéant
+	 * @param string $params continet les paramètres de la requete
+	 * @return BOOLEAN true si le cache peut etre renvoye, false le cas echeant
 	 */
 	public function check_cache($key){
 		
@@ -1341,12 +1385,12 @@ class SQLObject {
 			$from_cache = $this->cache->fetch($key);
 			
 						
-			//les tables ont elle été mis à jour depuis la création du cache ?
-			//on récupère la liste des tables passées en paramètre de la méthode "select"
+			//les tables ont elle ete mis a jour depuis la creation du cache ?
+			//on recupère la liste des tables passees en paramètre de la methode "select"
 
 			$request_tables = explode(',', $from_cache['tables']);
 			
-			//on récupère le fichier contenant les dates de modification des tables
+			//on recupère le fichier contenant les dates de modification des tables
 			if(true === $this->isApcCache || true === $this->isMemCache){
 				$maj_tables = unserialize($this->cache->fetch($this->maj_table_path));
 			}
@@ -1450,7 +1494,7 @@ class SQLObject {
 	}
 
 	/**
-	 * Mets à jour le tableau des tables sollicitée pour une requête
+	 * Mets a jour le tableau des tables sollicitee pour une requete
 	 * @param mixed string | array $tables
 	 */
 	protected function addIndexTable($tables){
@@ -1513,7 +1557,7 @@ class SQLObject {
 
 	public function query($sql,$multiple = false, $cache = false){
 		
-		//doit on retrouver les données en cache ?
+		//doit on retrouver les donnees en cache ?
 		if($cache){
 			if (false === empty($multiple)) { $multiple_cache = 1; }
 			$cacheKey = $this->setCacheKey( $table.$multiple_cache );
